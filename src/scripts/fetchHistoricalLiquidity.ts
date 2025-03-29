@@ -43,88 +43,189 @@ interface DexEvent {
 
 interface DexConfig {
     name: string;
-    v2: string;
-    v3?: string;
+    factory: string;
+    router: string;
+    events: string[];
 }
 
 // Helper function to fetch transactions for multiple blocks
 async function fetchBlockTransactions(provider: any, fromBlock: number, toBlock: number) {
     try {
-        // Wait 5s before making request to stay within rate limit
-        await sleep(5000);
+        logger.info(`🔍 Starting to fetch events from blocks ${fromBlock} to ${toBlock}`);
+        await sleep(100);
 
-        // Get events from all DEXes
-        const allEvents: DexEvent[] = [];
-
-        // Define DEX configurations
-        const dexConfigs: DexConfig[] = [
-            { name: 'PANCAKESWAP', v2: config.DEX_ADDRESSES.PANCAKESWAP.V2_FACTORY, v3: config.DEX_ADDRESSES.PANCAKESWAP.V3_FACTORY },
-            { name: 'BISWAP', v2: config.DEX_ADDRESSES.BISWAP.FACTORY },
-            { name: 'MDEX', v2: config.DEX_ADDRESSES.MDEX.FACTORY },
-            { name: 'BABYSWAP', v2: config.DEX_ADDRESSES.BABYSWAP.FACTORY },
-            { name: 'APESWAP', v2: config.DEX_ADDRESSES.APESWAP.FACTORY },
-            { name: 'JULSWAP', v2: config.DEX_ADDRESSES.JULSWAP.FACTORY },
-            { name: 'BAKERYSWAP', v2: config.DEX_ADDRESSES.BAKERYSWAP.FACTORY },
-            { name: 'KNIGHTSWAP', v2: config.DEX_ADDRESSES.KNIGHTSWAP.FACTORY },
-            { name: 'WAULTSWAP', v2: config.DEX_ADDRESSES.WAULTSWAP.FACTORY }
+        // Define DEX configurations with all possible events
+        const DEX_CONFIGS: DexConfig[] = [
+            {
+                name: 'PANCAKESWAP_V2',
+                factory: config.DEX_ADDRESSES.PANCAKESWAP.V2_FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'PANCAKESWAP_V3',
+                factory: config.DEX_ADDRESSES.PANCAKESWAP.V3_FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.PANCAKESWAP.V3_ROUTER.toLowerCase(),
+                events: ['PoolCreated']
+            },
+            {
+                name: 'MDEX',
+                factory: config.DEX_ADDRESSES.MDEX.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.MDEX.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'JULSWAP',
+                factory: config.DEX_ADDRESSES.JULSWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.JULSWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'WAULTSWAP',
+                factory: config.DEX_ADDRESSES.WAULTSWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.WAULTSWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'APESWAP',
+                factory: config.DEX_ADDRESSES.APESWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.APESWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'BISWAP',
+                factory: config.DEX_ADDRESSES.BISWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.BISWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'BABYSWAP',
+                factory: config.DEX_ADDRESSES.BABYSWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.BABYSWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'BAKERYSWAP',
+                factory: config.DEX_ADDRESSES.BAKERYSWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.BAKERYSWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            },
+            {
+                name: 'KNIGHTSWAP',
+                factory: config.DEX_ADDRESSES.KNIGHTSWAP.FACTORY.toLowerCase(),
+                router: config.DEX_ADDRESSES.KNIGHTSWAP.ROUTER.toLowerCase(),
+                events: ['PairCreated']
+            }
         ];
 
-        // Fetch events from each DEX
-        for (const dex of dexConfigs) {
-            try {
-                // Fetch V2 events
-                const v2Events = await provider.getLogs({
-                    address: dex.v2,
-                    topics: [ethers.id('PairCreated(address,address,address,uint256)')],
-                    fromBlock: fromBlock,
-                    toBlock: toBlock
-                });
-                allEvents.push(...v2Events.map((event: any) => ({ ...event, dex: dex.name, type: 'V2' })));
+        // Get all factory addresses and their respective events
+        const factoryEvents = new Map<string, string[]>();
+        DEX_CONFIGS.forEach(dex => {
+            factoryEvents.set(dex.factory, dex.events);
+        });
 
-                // Wait 1s between requests
-                await sleep(1000);
-
-                // Fetch V3 events if available
-                if (dex.v3) {
-                    const v3Events = await provider.getLogs({
-                        address: dex.v3,
-                        topics: [ethers.id('PoolCreated(address,address,uint24,bytes32)')],
+        // Get all events from all factories
+        const allEvents: DexEvent[] = [];
+        
+        // Fetch events for each factory and event combination
+        for (const [factory, events] of factoryEvents) {
+            const dexConfig = DEX_CONFIGS.find(d => d.factory === factory.toLowerCase());
+            logger.info(`\n📊 Processing ${dexConfig?.name || 'Unknown DEX'} at ${factory}`);
+            
+            for (const eventName of events) {
+                logger.info(`  ⮑ Checking for ${eventName} events`);
+                const eventTopic = ethers.id(`${eventName}(address,address,address,uint256)`); // V2 format
+                const eventTopicV3 = ethers.id(`${eventName}(address,address,uint24,uint24,address)`); // V3 format
+                
+                try {
+                    // Try V2 format first
+                    const v2Events = await provider.getLogs({
+                        address: factory,
+                        topics: [eventTopic],
                         fromBlock: fromBlock,
                         toBlock: toBlock
                     });
-                    allEvents.push(...v3Events.map((event: any) => ({ ...event, dex: dex.name, type: 'V3' })));
-                    await sleep(1000);
+                    
+                    if (v2Events.length > 0) {
+                        logger.info(`    ✅ Found ${v2Events.length} V2 events`);
+                    }
+                    
+                    // Map events to their DEX
+                    const dex = DEX_CONFIGS.find(d => d.factory === factory.toLowerCase());
+                    if (dex) {
+                        allEvents.push(...v2Events.map((event: { address: string } & DexEvent) => ({
+                            ...event,
+                            dex: dex.name,
+                            type: dex.name.includes('V3') ? 'V3' : 'V2'
+                        })));
+                    }
+
+                    // If this is PancakeSwap V3, also try V3 format
+                    if (factory === config.DEX_ADDRESSES.PANCAKESWAP.V3_FACTORY.toLowerCase()) {
+                        logger.info(`    🔄 Checking PancakeSwap V3 format`);
+                        const v3Events = await provider.getLogs({
+                            address: factory,
+                            topics: [eventTopicV3],
+                            fromBlock: fromBlock,
+                            toBlock: toBlock
+                        });
+                        
+                        if (v3Events.length > 0) {
+                            logger.info(`    ✅ Found ${v3Events.length} V3 events`);
+                        }
+                        
+                        allEvents.push(...v3Events.map((event: { address: string } & DexEvent) => ({
+                            ...event,
+                            dex: 'PANCAKESWAP_V3',
+                            type: 'V3'
+                        })));
+                    }
+                } catch (error) {
+                    logger.error(`    ❌ Error fetching ${eventName} events for ${dexConfig?.name}:`, error);
+                    continue;
                 }
-            } catch (error) {
-                logger.error(`Error fetching events for ${dex.name}:`, error);
-                continue;
             }
         }
 
-        // Get all transactions in the block range
-        const transactions = [];
-        for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-            const block = await provider.getBlock(blockNumber, true);
-            for (const tx of block.transactions) {
-                // Check transactions to all DEX routers
-                const isDexTransaction = Object.values(config.DEX_ADDRESSES).some(dex => {
-                    if ('V2_ROUTER' in dex && 'V3_ROUTER' in dex) {
-                        return tx.to === dex.V2_ROUTER || tx.to === dex.V3_ROUTER;
-                    }
-                    return tx.to === dex.ROUTER;
-                });
-                
-                if (isDexTransaction) {
-                    const methodId = tx.data.slice(0, 10);
-                    if (methodId === config.SMART_ROUTER_METHODS.buyMemeToken ||
-                        methodId === config.SMART_ROUTER_METHODS.swapV3ExactIn) {
-                        transactions.push(tx);
-                    }
-                }
-            }
-        }
+        // Get block with transactions for the range
+        logger.info(`\n🔍 Fetching block transactions for block ${toBlock}`);
+        const block = await provider.getBlock(toBlock, true);
+        
+        // Get all router addresses
+        const routerAddresses = new Set(DEX_CONFIGS.map(dex => dex.router));
 
-        logger.info(`Found ${allEvents.length} events and ${transactions.length} transactions from block ${fromBlock} to ${toBlock}`);
+        // Filter DEX transactions
+        const transactions = block.transactions.filter((tx: any) => {
+            if (!tx.to) return false;
+            const toAddress = tx.to.toLowerCase();
+            if (!routerAddresses.has(toAddress)) return false;
+
+            const methodId = tx.data.slice(0, 10);
+            const isDexTx = methodId === config.SMART_ROUTER_METHODS.buyMemeToken ||
+                           methodId === config.SMART_ROUTER_METHODS.swapV3ExactIn;
+            
+            if (isDexTx) {
+                const dex = DEX_CONFIGS.find(d => d.router === toAddress);
+                logger.info(`    ✅ Found DEX transaction on ${dex?.name || 'Unknown DEX'}: ${tx.hash}`);
+            }
+            
+            return isDexTx;
+        });
+
+        logger.info(`\n📈 Summary for blocks ${fromBlock}-${toBlock}:`);
+        logger.info(`  • Total events found: ${allEvents.length}`);
+        logger.info(`  • Total DEX transactions: ${transactions.length}`);
+        
+        // Log breakdown by DEX
+        const dexBreakdown = allEvents.reduce((acc: any, event) => {
+            acc[event.dex] = (acc[event.dex] || 0) + 1;
+            return acc;
+        }, {});
+        
+        Object.entries(dexBreakdown).forEach(([dex, count]) => {
+            logger.info(`  • ${dex}: ${count} events`);
+        });
+
         return { events: allEvents, transactions };
     } catch (error: any) {
         if (error.message.includes('rate limit') || error.message.includes('429') || error.message.includes('limit exceeded')) {
@@ -139,31 +240,46 @@ async function fetchBlockTransactions(provider: any, fromBlock: number, toBlock:
 
 // Helper function to process events
 async function processEvents(events: DexEvent[], blockNumber: number) {
+    logger.info(`\n🔄 Processing ${events.length} events for block ${blockNumber}`);
+    
     for (const event of events) {
         try {
             // Check if event exists and has required properties
             if (!event || !event.topics || !event.data) {
-                logger.warn(`Skipping invalid event in block ${blockNumber}`);
+                logger.warn(`  ⚠️ Skipping invalid event in block ${blockNumber}`);
                 continue;
             }
 
+            logger.info(`\n  📝 Processing ${event.dex} ${event.type} event`);
+            
             // Extract addresses from topics and data
-            const tokenA = '0x' + event.topics[1].slice(26); // Get last 40 chars
-            const tokenB = '0x' + event.topics[2].slice(26); // Get last 40 chars
-            const pair = '0x' + event.data.slice(26, 66); // Get pair address from data (40 chars after 0x)
+            const tokenA = '0x' + event.topics[1].slice(26);
+            const tokenB = '0x' + event.topics[2].slice(26);
+            const pair = '0x' + event.data.slice(26, 66);
 
             // Convert addresses to checksum format
             const checksumTokenA = ethers.getAddress(tokenA);
             const checksumTokenB = ethers.getAddress(tokenB);
             const checksumPair = ethers.getAddress(pair);
 
+            logger.info(`    • Pair Address: ${checksumPair}`);
+            logger.info(`    • Token A: ${checksumTokenA}`);
+            logger.info(`    • Token B: ${checksumTokenB}`);
+
             // Get token info
+            logger.info(`    🔍 Fetching token information...`);
             const tokenService = TokenService.getInstance();
             const [tokenAInfo, tokenBInfo] = await Promise.all([
                 tokenService.getTokenInfo(checksumTokenA),
                 tokenService.getTokenInfo(checksumTokenB)
             ]);
 
+            logger.info(`    ✅ Token A: ${tokenAInfo.symbol} (${tokenAInfo.name})`);
+            logger.info(`    ✅ Token B: ${tokenBInfo.symbol} (${tokenBInfo.name})`);
+
+            // Save tokens and create history
+            logger.info(`    💾 Saving to database...`);
+            
             // Save token A
             await Token.findOneAndUpdate(
                 { address: checksumTokenA },
@@ -228,11 +344,12 @@ async function processEvents(events: DexEvent[], blockNumber: number) {
             });
 
             await tokenHistory.save();
-            logger.info(`Saved ${event.dex} ${event.type} event for block ${blockNumber}, pair: ${checksumPair}`);
+            logger.info(`    ✅ Successfully saved event data`);
 
             // Send Telegram notification for new token
             if (tokenAInfo.symbol === 'WBNB' || tokenBInfo.symbol === 'WBNB') {
                 const newToken = tokenAInfo.symbol === 'WBNB' ? tokenBInfo : tokenAInfo;
+                logger.info(`    🚨 New token detected: ${newToken.symbol}`);
                 const message = `
 🚨 New Token Detected on ${event.dex}!
 
@@ -256,8 +373,8 @@ PancakeSwap: https://pancakeswap.finance/swap?outputCurrency=${newToken.address}
                 await tgMessage(message);
             }
         } catch (error) {
-            logger.error(`Error processing event in block ${blockNumber}:`, error);
-            logger.error('Event data:', event);
+            logger.error(`    ❌ Error processing event:`, error);
+            logger.error('    ❌ Event data:', event);
         }
     }
 }
@@ -338,7 +455,7 @@ export async function fetchHistoricalLiquidity() {
                 attempts++;
                 logger.error(`Failed to get current block (attempt ${attempts}/${maxAttempts}):`, error);
                 httpProviderPool.switchProvider();
-                await sleep(10000);
+                await sleep(1000);
             }
         }
 
@@ -348,42 +465,102 @@ export async function fetchHistoricalLiquidity() {
 
         // Get the last processed block
         const lastProcessedBlock = await getLastProcessedBlock();
-        const startBlock = lastProcessedBlock ? lastProcessedBlock + 1 : currentBlock - 1000; // Start from 1000 blocks ago if no last processed block
+        const startBlock = lastProcessedBlock ? lastProcessedBlock + 1 : currentBlock - 1000;
 
         logger.info(`Starting from block ${startBlock} to ${currentBlock}`);
 
-        // Process blocks in batches of 10
-        for (let blockNumber = startBlock; blockNumber <= currentBlock; blockNumber += 10) {
-            const toBlock = Math.min(blockNumber + 9, currentBlock);
-            await processBlocks(blockNumber, toBlock, httpProviderPool);
-            
-            // Wait 2s between batches to avoid rate limits
-            await sleep(2000);
-        }
+        // Start monitoring new blocks immediately in a separate process
+        monitorNewBlocks(currentBlock, httpProviderPool);
 
-        // Start monitoring new blocks continuously
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        // Calculate batch size based on rate limits
+        const BATCH_SIZE = 100; // Process 100 blocks at a time
+
+        // Process historical blocks
+        let blockNumber = currentBlock - 1;
+        
+        while (blockNumber >= startBlock) {
+            const fromBlock = Math.max(blockNumber - BATCH_SIZE + 1, startBlock);
+            
             try {
-                const provider = httpProviderPool.getProvider();
-                const latestBlock = await provider.getBlockNumber();
+                await processBlocks(fromBlock, blockNumber, httpProviderPool);
+                logger.info(`✅ Processed blocks ${fromBlock}-${blockNumber}`);
                 
-                if (latestBlock > currentBlock) {
-                    logger.info(`New blocks detected: ${currentBlock + 1} to ${latestBlock}`);
-                    await processBlocks(currentBlock + 1, latestBlock, httpProviderPool);
-                    currentBlock = latestBlock;
-                }
+                // Move to next batch
+                blockNumber = fromBlock - 1;
                 
-                // Wait 5s before checking for new blocks
-                await sleep(5000);
+                // Wait 200ms between batches to respect rate limits
+                await sleep(200);
             } catch (error) {
-                logger.error('Error monitoring new blocks:', error);
-                httpProviderPool.switchProvider();
-                await sleep(10000);
+                logger.error(`❌ Failed to process blocks ${fromBlock}-${blockNumber}:`, error);
+                // On error, wait longer and retry the same batch
+                await sleep(1000);
+                continue;
             }
         }
+
     } catch (error) {
         logger.error('Error fetching historical liquidity:', error);
         throw error;
+    }
+}
+
+// Function to monitor new blocks in real-time
+async function monitorNewBlocks(startBlock: number, providerPool: any) {
+    let currentBlock = startBlock;
+    let lastCheckTime = Date.now();
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        try {
+            // Ensure we don't exceed rate limit
+            const now = Date.now();
+            const timeSinceLastCheck = now - lastCheckTime;
+            if (timeSinceLastCheck < 100) { // Minimum 100ms between requests
+                await sleep(100 - timeSinceLastCheck);
+            }
+            
+            const provider = providerPool.getProvider();
+            const latestBlock = await provider.getBlockNumber();
+            lastCheckTime = Date.now();
+            
+            if (latestBlock > currentBlock) {
+                logger.info(`🚨 New blocks detected: ${currentBlock + 1} to ${latestBlock}`);
+                
+                // Process blocks in small batches even for real-time
+                for (let blockNum = currentBlock + 1; blockNum <= latestBlock; blockNum += 5) {
+                    const batchEndBlock = Math.min(blockNum + 4, latestBlock);
+                    const { events, transactions } = await fetchBlockTransactions(provider, blockNum, batchEndBlock);
+                    
+                    if (events.length > 0 || transactions.length > 0) {
+                        logger.info(`🔍 Blocks ${blockNum}-${batchEndBlock}: Found ${events.length} events and ${transactions.length} transactions`);
+                        await processEvents(events, blockNum);
+                        await processEvents(transactions, blockNum);
+                    }
+                    
+                    for (let b = blockNum; b <= batchEndBlock; b++) {
+                        await markBlockAsProcessed(b, true);
+                    }
+                    
+                    // Wait 100ms between batches
+                    await sleep(100);
+                }
+                
+                currentBlock = latestBlock;
+            }
+            
+            // Check for new blocks every 500ms to stay within rate limits
+            await sleep(500);
+        } catch (error) {
+            logger.error('Error monitoring new blocks:', error);
+            providerPool.switchProvider();
+            await sleep(1000);
+        }
+    }
+}
+
+// Helper function to get provider by URL
+declare module '../config' {
+    interface ProviderPool {
+        getProviderByUrl: (url: string) => any;
     }
 } 

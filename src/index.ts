@@ -1,55 +1,49 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import { config, initialize } from './config';
-import { appRouter } from './routes';
-import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
 import { logger } from './utils/logger';
-import { tgMessage } from './TG/tgBot';
+import { initialize } from './config';
+import { initializeProvider } from './ERC20/swap';
 import { connectDB } from './config/database';
-import { Telegraf } from 'telegraf';
-
-// Khởi tạo express app
-const app = express();
-app.use(express.json());
-app.use('/api', appRouter);
-
-// Initialize Telegram bot
-if (!config.TELEGRAM.BOT_TOKEN) {
-	throw new Error('Telegram bot token is required');
-}
-
-const bot = new Telegraf(config.TELEGRAM.BOT_TOKEN);
-bot.launch();
-
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
+import { startServer } from './server';
+import { tgMessage } from './TG/tgBot';
 
 async function main() {
 	try {
-		// Initialize providers first
+		// Initialize providers
+		logger.info('Initializing providers and load balancing system...');
 		await initialize();
-		logger.info('Providers initialized successfully');
+
+		// Initialize provider and contract for swaps
+		logger.info('Initializing provider and contract for swaps...');
+		await initializeProvider();
 
 		// Connect to MongoDB
-		if (!config.MONGODB_URI) {
-			throw new Error('MongoDB URI is not defined');
-		}
-		await mongoose.connect(config.MONGODB_URI);
-		logger.info('Connected to MongoDB successfully');
+		logger.info('Connecting to MongoDB...');
+		await connectDB();
+		logger.info('Connected to MongoDB');
+
+		// Send startup notification
+		await tgMessage('🚀 BscLiquiditySniper Bot Started!');
 
 		// Fetch historical liquidity events
+		logger.info('Starting to fetch historical liquidity events...');
 		await fetchHistoricalLiquidity();
-		logger.info('Finished fetching historical liquidity events');
 
-		// Start server
-		const port = config.APP.PORT;
-		app.listen(port, () => {
-			logger.info(`Server is running on port ${port}`);
+		// Start API server
+		logger.info('Starting API server...');
+		await startServer();
+
+		// Handle graceful shutdown
+		const signals = ['SIGINT', 'SIGTERM'] as const;
+		signals.forEach((signal) => {
+			process.on(signal, async () => {
+				logger.info(`Received ${signal}, shutting down gracefully...`);
+				await tgMessage('🛑 BscLiquiditySniper Bot Stopped!');
+				process.exit(0);
+			});
 		});
 	} catch (error) {
-		logger.error('Error in main process:', error);
-		await tgMessage(`Error starting application: ${error}`);
+		logger.error('Error in main:', error);
+		await tgMessage('❌ Error in BscLiquiditySniper Bot!');
 		process.exit(1);
 	}
 }
