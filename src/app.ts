@@ -3,8 +3,7 @@ import figlet from 'figlet';
 import { config } from './config';
 import cors from 'cors';
 import bodyparser from 'body-parser';
-
-import { dataStream } from './dataStream';
+import dotenv from 'dotenv';
 
 const app = express();
 
@@ -31,17 +30,15 @@ const logger = async (
 // CONFIG
 if (
 	!config.APP.PORT &&
-	config.APP.NODE_ENV! !== 'production' &&
-	!config.PANCAKESWAP.PROVIDER
+	config.APP.NODE_ENV! !== 'production'
 ) {
-	const dotenv = require('dotenv');
 	dotenv.config({ path: '../.env' });
 	app.use(logger);
 	throw new Error('PORT, NODE_ENV are not defined');
 }
 
 // CORS
-var corsOptions = {
+const corsOptions = {
 	origin: '*',
 	methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 	preflightContinue: false,
@@ -55,9 +52,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 app.use(bodyparser.json());
 app.use(logger);
-
-// STREAMING DATA
-// dataStream(); TODO - Uncomment this line to start the data stream
 
 // ROUTES
 app.get('/', async (req: express.Request, res: express.Response) => {

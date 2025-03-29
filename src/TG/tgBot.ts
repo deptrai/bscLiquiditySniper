@@ -3,8 +3,8 @@ import { config } from '../config';
 import fs from 'fs';
 import path from 'path';
 
-if (!config.TG.botToken) {
-	console.log(`Provide LiquiditySnipperBot BOT Token in .env file!`);
+if (!config.TELEGRAM.BOT_TOKEN) {
+	throw new Error('Telegram bot token not found');
 }
 
 console.log(`*****`.repeat(5));
@@ -12,12 +12,24 @@ console.log(
 	`TG BscLiquiditySniper Bot Notifications Started at: ${new Date().toLocaleTimeString()}`
 );
 
-const bot = new Telegraf(config.TG.botToken!);
+const bot = new Telegraf(config.TELEGRAM.BOT_TOKEN);
+
+// Kiểm tra người dùng được phép
+const isAuthorized = (userId: number) => {
+	if (!config.TELEGRAM.CHAT_ID) {
+		return false;
+	}
+	return config.TELEGRAM.CHAT_ID.toString() === userId.toString();
+};
+
 bot.use(async (ctx: Context, next) => {
 	try {
-		let userId = ctx.message?.from?.id || '';
-		console.log(`User ID:`, userId);
-		if (config.TG.users!.includes(userId.toString())) {
+		const userId = ctx.message?.from?.id;
+		if (!userId) {
+			return ctx.reply('Invalid user ID');
+		}
+		
+		if (isAuthorized(userId)) {
 			await next();
 			return;
 		} else {
@@ -37,56 +49,44 @@ export const tgMessage = async (message: string, photoBuffer?: Buffer) => {
 
 		const randomImage = bufferImage(`../images/img${randomIndex}.png`);
 
-		for (const user of config.TG.users!.split(',')) {
-			const frtedMsg = normalizeMessage(message);
-			let photo = photoBuffer ? photoBuffer : randomImage;
-
-			const msg = await bot.telegram
-				.sendPhoto(
-					user,
-					{ source: photo! },
-					{
-						caption: frtedMsg,
-						parse_mode: 'MarkdownV2',
-					}
-				)
-				.then(() => {
-					console.log('Message sent to:', user);
-					return 'Message sent successfully';
-				})
-
-				.catch((error: any) => {
-					// ERROR HANDLING
-					console.log('Error sending message to:', user, error);
-					const errorCode = error.response?.error_code;
-					const errorDescription = error.response?.description;
-
-					if (
-						errorCode === 400 &&
-						errorDescription === 'Bad Request: chat not found'
-					) {
-						console.error(
-							`ChatId ${user} not found. User has not started the bot yet`
-						);
-						return 'ChatId not found';
-					} else if (
-						errorCode === 400 &&
-						errorDescription.includes("can't parse entities")
-					) {
-						console.error(`Message contains invalid entities. ChatId: ${user}`);
-						return 'Message contains invalid entities';
-					} else {
-						console.error(
-							`Error sending message to User:`,
-							user,
-							error.message || errorDescription
-						);
-						return 'Error sending message to User';
-					}
-				});
-			return msg;
+		if (!config.TELEGRAM.CHAT_ID) {
+			throw new Error('Telegram chat ID not found');
 		}
-		return null;
+
+		const frtedMsg = normalizeMessage(message);
+		const photo = photoBuffer ? photoBuffer : randomImage;
+
+		const msg = await bot.telegram
+			.sendPhoto(
+				config.TELEGRAM.CHAT_ID,
+				{ source: photo! },
+				{
+					caption: frtedMsg,
+					parse_mode: 'MarkdownV2',
+				}
+			)
+			.then(() => {
+				console.log('Message sent successfully');
+				return 'Message sent successfully';
+			})
+			.catch((error: any) => {
+				// ERROR HANDLING
+				console.log('Error sending message:', error);
+				const errorCode = error.response?.error_code;
+				const errorDescription = error.response?.description;
+
+				if (errorCode === 400 && errorDescription === 'Bad Request: chat not found') {
+					console.error('Chat not found. User has not started the bot yet');
+					return 'Chat not found';
+				} else if (errorCode === 400 && errorDescription.includes("can't parse entities")) {
+					console.error('Message contains invalid entities');
+					return 'Message contains invalid entities';
+				} else {
+					console.error('Error sending message:', error.message || errorDescription);
+					return 'Error sending message';
+				}
+			});
+		return msg;
 	} catch (error) {
 		console.log('Error sending message with photo', error);
 		return error;

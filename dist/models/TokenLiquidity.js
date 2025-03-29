@@ -1,0 +1,62 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TokenLiquidity = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
+const tokenLiquiditySchema = new mongoose_1.Schema({
+    tokenAddress: { type: String, required: true, index: true },
+    pairAddress: { type: String, required: true, index: true },
+    liquidity: { type: Number, required: true },
+    liquidityUSD: { type: Number, required: true },
+    timestamp: { type: Date, required: true, index: true },
+    blockNumber: { type: Number, required: true, index: true },
+    version: { type: String, enum: ['v2', 'v3'], required: true },
+    token0Reserve: { type: String, required: true },
+    token1Reserve: { type: String, required: true },
+    token0Decimals: { type: Number, required: true },
+    token1Decimals: { type: Number, required: true },
+    token0Symbol: { type: String, required: true },
+    token1Symbol: { type: String, required: true },
+    fee: { type: Number },
+    tickLower: { type: Number },
+    tickUpper: { type: Number },
+    sqrtPriceX96: { type: String },
+    liquidityX96: { type: String }
+});
+// Indexes
+tokenLiquiditySchema.index({ tokenAddress: 1, timestamp: -1 });
+tokenLiquiditySchema.index({ pairAddress: 1, timestamp: -1 });
+tokenLiquiditySchema.index({ blockNumber: -1 });
+exports.TokenLiquidity = mongoose_1.default.model('TokenLiquidity', tokenLiquiditySchema);

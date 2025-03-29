@@ -23,3 +23,23 @@
 - WALLET
 - DB_URL
 - TG_BOT
+
+# Network
+WSS_URL=your_bsc_websocket_url
+RPC_URL=your_bsc_rpc_url
+
+# Wallet
+PUBLIC_KEY=your_wallet_public_key
+SECRET_KEY=your_wallet_private_key
+
+# Database
+MONGO_URL=your_mongodb_connection_string
+
+# Telegram
+BOT_TOKEN=your_telegram_bot_token
+TG_USERS=comma_separated_telegram_user_ids
+
+# App Config
+PORT=4001
+NODE_ENV=development
+SERVER_URL=http://localhost:

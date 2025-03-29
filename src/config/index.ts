@@ -1,37 +1,78 @@
-import 'dotenv/config';
-import ethers, { WebSocketProvider, JsonRpcProvider } from 'ethers';
-import { RPCManager } from '../ERC20';
+import { ethers } from 'ethers';
+import dotenv from 'dotenv';
+import { HttpProviderPool, WssProviderPool } from './providerPool';
 
-if (!process.env.WSS_URL) {
-	throw new Error('WebSocket NOT Found!');
+dotenv.config();
+
+// Validate environment variables
+const requiredEnvVars = [
+	'RPC_URL',
+	'WSS_URL',
+	'SECRET_KEY',
+	'MONGODB_URI',
+	'TELEGRAM_BOT_TOKEN',
+	'TELEGRAM_CHAT_ID'
+];
+
+for (const envVar of requiredEnvVars) {
+	if (!process.env[envVar]) {
+		throw new Error(`Missing required environment variable: ${envVar}`);
+	}
 }
-export const bscWSSProvider = new WebSocketProvider(process.env.WSS_URL);
-export const provider = new JsonRpcProvider(process.env.RPC_URL);
 
-const config = {
-	PROVIDER: provider,
-	APP: {
-		PORT: process.env.PORT,
-		SERVER_URL: process.env.SERVER_URL,
-		NODE_ENV: process.env.NODE_ENV,
-		DB: process.env.MONGO_URL,
-	},
+// Validate V2_ROUTER
+const V2_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+if (!V2_ROUTER) {
+	throw new Error('V2 Router address is required');
+}
+
+// Initialize providers
+const httpProviders = [new ethers.JsonRpcProvider(process.env.RPC_URL)];
+const wssProviders = [new ethers.WebSocketProvider(process.env.WSS_URL || '')];
+
+// Initialize provider pools
+const httpProviderPool = new HttpProviderPool(httpProviders);
+const wssProviderPool = new WssProviderPool(wssProviders);
+
+// Export configuration
+export const config = {
+	PROVIDER: httpProviders[0],
+	WSS_PROVIDER_POOL: wssProviderPool,
+	HTTP_PROVIDER_POOL: httpProviderPool,
+	RPC_URL: process.env.RPC_URL,
+	WSS_URL: process.env.WSS_URL,
 	PANCAKESWAP: {
-		PROVIDER: bscWSSProvider,
-		ROUTER: `0x10ED43C718714eb63d5aA57B78B54704E256024E`.toLowerCase(),
-		WBNB_ADDRESS: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
+		V2_ROUTER,
+		V3_ROUTER: '0x13f4EA83D0bd40E75C8222255bc855a974568Dd4',
+		V2_FACTORY: '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73',
+		V3_FACTORY: '0x0BFbCF4fa2dEEaC5e3a1A5E6E5B0f0a5E6E5B0f0',
+		V2_FILTER: {
+			fromBlock: 0,
+			toBlock: 'latest'
+		},
+		V3_FILTER: {
+			fromBlock: 0,
+			toBlock: 'latest'
+		}
+	},
+	APP: {
+		PORT: process.env.PORT || 3000,
+		NODE_ENV: process.env.NODE_ENV || 'development'
 	},
 	WALLET: {
-		publicKey: process.env.PUBLIC_KEY,
-		secretKey: process.env.SECRET_KEY,
+		secretKey: process.env.SECRET_KEY
 	},
-	TG: {
-		botToken: process.env.BOT_TOKEN,
-		users: process.env.TG_USERS,
+	TELEGRAM: {
+		BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+		CHAT_ID: process.env.TELEGRAM_CHAT_ID
 	},
-	TOKENS_TO_WATCH: {
-		KYOTO: '0x69104fb28f4BB9f6efc899bd1d94f386CDF1b9dA',
-	},
+	TOKENS_TO_WATCH: [
+		'0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', // CAKE
+		'0x2170Ed0880ac9A755fd29B2688956BD959F933F8', // ETH
+		'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', // USDC
+		'0x55d398326f99059fF775485246999027B3197955', // USDT
+		'0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', // BTCB
+		'0x0D8Ce2A99Bb6e3A7L3aD3F3Df3a7L3aD3F3Df3a7'  // BUSD
+	],
+	MONGODB_URI: process.env.MONGODB_URI
 };
-
-export { config };

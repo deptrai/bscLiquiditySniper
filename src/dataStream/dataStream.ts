@@ -1,11 +1,13 @@
 import { TxContents } from '../utils/interfaces';
 import { config } from '../config';
 import { txProcessor } from '../txProcessor';
+import { ethers } from 'ethers';
+import { TokenService } from '../services/tokenService';
 
 export const dataStream = async () => {
 	console.log('Streaming BSC data...');
 	const provider = config.PROVIDER;
-	const router = config.PANCAKESWAP.ROUTER;
+	const router = config.PANCAKESWAP.V2_ROUTER;
 
 	let transactionCount = 0;
 	let lastTransactionTime = Date.now();

@@ -1,37 +1,48 @@
-import './database/connect';
 import { config } from './config';
-import figlet from 'figlet';
-import { app } from './app';
+import { connectDB } from './db';
+import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
+import express from 'express';
+import { appRouter } from './routes';
+import { sendTelegramMessage } from './utils/telegram';
 
-process.on('uncaughtException', (err) => {
-	console.log('UNCAUGHT EXCEPTION! 💥 App Shutting down...');
-	console.log(err.name, err.message);
-	process.exit(1);
-});
+// Khởi tạo express app
+const app = express();
+app.use(express.json());
+app.use(appRouter);
 
-// Config Environment Variables
-if (process.env.NODE_ENV !== 'production') {
-	require('dotenv').config({ path: '.env' });
+// Hàm khởi động server
+async function startServer() {
+	const port = config.APP.PORT || 3000;
+	return app.listen(port, () => {
+		console.log(`Server started on port ${port}`);
+	});
 }
 
-// Create & Start Server
-const port = config.APP.PORT || 4001;
-const server = app.listen(port, async () => {
-	console.log(
-		figlet.textSync('🔥🔥 BSC LIQUIDITY SNIPER 👋', {
-			font: 'Soft',
-			horizontalLayout: 'default',
-			verticalLayout: 'default',
-		})
-	);
-	console.log(`✅ HOST URL :  ${config.APP.SERVER_URL}${port} ✅ `);
-});
+async function main() {
+	try {
+		// Connect to MongoDB
+		await connectDB();
+		console.log('Connected to MongoDB');
 
-// Unhandled Rejections
-process.on('unhandledRejection', (err: any) => {
-	console.log('UNHANDLED SERVER REJECTION! 💥 Shutting down...');
-	console.log(err.name, err.message);
-	server.close(() => {
+		// Fetch historical liquidity events
+		await fetchHistoricalLiquidity();
+		console.log('Fetched historical liquidity events');
+
+		// Start server
+		await startServer();
+		console.log('Server started successfully');
+
+		// Send Telegram notification
+		await sendTelegramMessage('Bot started successfully');
+	} catch (error) {
+		console.error('Error starting bot:', error);
+		try {
+			await sendTelegramMessage(`Error starting bot: ${error}`);
+		} catch (telegramError) {
+			console.error('Error sending Telegram message:', telegramError);
+		}
 		process.exit(1);
-	});
-});
+	}
+}
+
+main();

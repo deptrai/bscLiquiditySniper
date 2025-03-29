@@ -2,16 +2,29 @@ import ABI from '../ABI/pancakeswap.json';
 import { ethers } from 'ethers';
 import { config } from '../config';
 
-const provider = config.PROVIDER;
+if (!config.WALLET.secretKey) {
+	throw new Error('Secret key not found in config');
+}
 
-const signer = new ethers.Wallet(config.WALLET.secretKey!);
-const account = signer.connect(provider);
-const contract = new ethers.Contract(config.PANCAKESWAP.ROUTER, ABI, account);
+if (!config.PANCAKESWAP.V2_ROUTER) {
+	throw new Error('V2 Router address not found in config');
+}
+
+// Initialize signer and account
+const signer = new ethers.Wallet(config.WALLET.secretKey);
+const account = signer.connect(config.PROVIDER);
+
+// Initialize contract with validated V2_ROUTER
+const contract = new ethers.Contract(
+	config.PANCAKESWAP.V2_ROUTER,
+	ABI,
+	account
+);
 
 // getTokenBalance
 export const getTokenBalance = async (tokenAddress: string, wallet: string) => {
 	try {
-		const contract = new ethers.Contract(tokenAddress, ABI, provider);
+		const contract = new ethers.Contract(tokenAddress, ABI, config.PROVIDER);
 		const balance = await contract.balanceOf(wallet);
 
 		return { success: true, data: balance };
@@ -28,9 +41,9 @@ export const getAmountsOut = async (amountIn: string, path: string[]) => {
 		'function getAmountsOut(uint amountIn, address[] memory path) public view  returns (uint[] memory amounts)',
 	];
 	const contract = new ethers.Contract(
-		config.PANCAKESWAP.ROUTER,
+		config.PANCAKESWAP.V2_ROUTER,
 		amountsOutABI,
-		provider
+		config.PROVIDER
 	);
 	try {
 		const amounts = await contract.getAmountsOut(amountIn, path);
@@ -47,7 +60,7 @@ export const getAmountsOut = async (amountIn: string, path: string[]) => {
 // Get walletNonce
 export const getWalletNonce = async (wallet: string) => {
 	try {
-		const nonce = await provider.getTransactionCount(wallet);
+		const nonce = await config.PROVIDER.getTransactionCount(wallet);
 
 		return { success: true, data: nonce };
 	} catch (error) {
@@ -63,7 +76,7 @@ export const getAllowance = async (token: string): Promise<string> => {
 		const contract = new ethers.Contract(token, ABI, account);
 		const allowance = await contract.allowance(
 			account,
-			config.PANCAKESWAP.ROUTER
+			config.PANCAKESWAP.V2_ROUTER
 		);
 		const decimals = await contract.decimals();
 		return ethers.formatUnits(allowance, decimals);
@@ -86,8 +99,8 @@ export const approveAllowance = async (token: string) => {
 		};
 		console.log('APPROVING ALLOWANCE');
 		const contract = new ethers.Contract(token, approveABI, account);
-		let approveTx = await contract.approve(
-			config.PANCAKESWAP.ROUTER,
+		const approveTx = await contract.approve(
+			config.PANCAKESWAP.V2_ROUTER,
 			MAX_INT,
 			overloads
 		);
@@ -95,6 +108,7 @@ export const approveAllowance = async (token: string) => {
 		return { success: true, data: approveTx };
 	} catch (error) {
 		console.log('Error approving allowance:', error);
+		return { success: false, data: error };
 	}
 };
 

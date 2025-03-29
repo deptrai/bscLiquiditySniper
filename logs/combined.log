@@ -1,0 +1,3 @@
+{"level":"info","message":"Connected to MongoDB","timestamp":"2025-03-27T03:39:38.029Z"}
+{"level":"info","message":"Fetching historical liquidity events from block 47821006 to 47822006","timestamp":"2025-03-27T03:56:14.915Z"}
+{"level":"info","message":"Split into 20 chunks of 50 blocks each","timestamp":"2025-03-27T03:56:14.916Z"}

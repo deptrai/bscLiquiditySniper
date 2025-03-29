@@ -1,4 +1,8 @@
-import { app } from '../app';
+import express from 'express';
 import { swapRouter } from './swap';
 
-app.use('/api', swapRouter);
+const router = express.Router();
+
+router.use('/swap', swapRouter);
+
+export const appRouter = router;
