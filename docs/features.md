@@ -59,4 +59,144 @@
 ### 9.1 Performance
 - Block range splitting to avoid rate limits
 - Data caching
-- Parallel event processing 
+- Parallel event processing
+
+## 10. Multi-DEX Support
+- **PancakeSwap**
+  - V2 Pools
+  - V3 Pools
+  - Smart Router
+- **Biswap**
+  - V2 Pools
+- **MDEX**
+  - V2 Pools
+- **BabySwap**
+  - V2 Pools
+- **ApeSwap**
+  - V2 Pools
+- **JulSwap**
+  - V2 Pools
+- **BakerySwap**
+  - V2 Pools
+- **KnightSwap**
+  - V2 Pools
+- **WaultSwap**
+  - V2 Pools
+
+## 11. Token Monitoring
+- **New Token Detection**
+  - Monitors all DEXes for new token pairs
+  - Supports both V2 and V3 pools
+  - Real-time notifications via Telegram
+  - Includes token metadata (symbol, name, decimals)
+
+- **Pool Tracking**
+  - Tracks all pools for each token
+  - Records pool type (V2/V3)
+  - Stores DEX information
+  - Maintains historical pool data
+
+## 12. Smart Router Integration
+- **Transaction Monitoring**
+  - Tracks `buyMemeToken` transactions
+  - Monitors `swapV3ExactIn` operations
+  - Supports all DEX routers
+  - Real-time transaction processing
+
+## 13. Database Management
+- **Token Collection**
+  - Stores token information
+  - Maintains pool relationships
+  - Tracks last update timestamps
+  - Supports multiple pools per token
+
+- **Token History**
+  - Records all pool creation events
+  - Stores transaction details
+  - Maintains block information
+  - Includes DEX-specific data
+
+- **Processed Blocks**
+  - Tracks processed blocks
+  - Records processing status
+  - Handles failed blocks
+  - Supports retry mechanism
+
+## 14. Provider Management
+- **Multiple RPC Providers**
+  - Load balancing across providers
+  - Automatic provider switching
+  - Rate limit handling
+  - Error recovery
+
+- **WebSocket Support**
+  - Real-time event monitoring
+  - Efficient data streaming
+  - Connection management
+  - Automatic reconnection
+
+## 15. Error Handling
+- **Rate Limiting**
+  - Automatic provider switching
+  - Request throttling
+  - Backoff strategy
+  - Error logging
+
+- **Transaction Processing**
+  - Retry mechanism
+  - Error recovery
+  - Detailed error logging
+  - Transaction validation
+
+## 16. Performance Optimization
+- **Batch Processing**
+  - Processes blocks in batches
+  - Efficient database operations
+  - Optimized event handling
+  - Reduced API calls
+
+- **Caching**
+  - Token information caching
+  - Provider response caching
+  - Reduced database queries
+  - Improved response times
+
+## 17. Monitoring & Notifications
+- **Telegram Integration**
+  - New token alerts
+  - Pool creation notifications
+  - Error reporting
+  - Status updates
+
+- **Logging**
+  - Detailed event logging
+  - Error tracking
+  - Performance metrics
+  - Debug information
+
+## 18. Configuration
+- **Environment Variables**
+  - RPC URLs
+  - WebSocket URL
+  - MongoDB URI
+  - Telegram credentials
+  - Application settings
+
+- **DEX Configuration**
+  - Router addresses
+  - Factory addresses
+  - Smart router settings
+  - Event filters
+
+## 19. Security
+- **Input Validation**
+  - Address validation
+  - Transaction verification
+  - Event validation
+  - Data sanitization
+
+- **Error Prevention**
+  - Duplicate prevention
+  - Invalid data handling
+  - Rate limit protection
+  - Connection security 

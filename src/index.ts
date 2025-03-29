@@ -1,46 +1,55 @@
-import { config } from './config';
-import { connectDB } from './db';
-import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
 import express from 'express';
+import mongoose from 'mongoose';
+import { config, initialize } from './config';
 import { appRouter } from './routes';
-import { sendTelegramMessage } from './utils/telegram';
+import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
+import { logger } from './utils/logger';
+import { tgMessage } from './TG/tgBot';
+import { connectDB } from './config/database';
+import { Telegraf } from 'telegraf';
 
 // Khởi tạo express app
 const app = express();
 app.use(express.json());
-app.use(appRouter);
+app.use('/api', appRouter);
 
-// Hàm khởi động server
-async function startServer() {
-	const port = config.APP.PORT || 3000;
-	return app.listen(port, () => {
-		console.log(`Server started on port ${port}`);
-	});
+// Initialize Telegram bot
+if (!config.TELEGRAM.BOT_TOKEN) {
+	throw new Error('Telegram bot token is required');
 }
+
+const bot = new Telegraf(config.TELEGRAM.BOT_TOKEN);
+bot.launch();
+
+// Enable graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
 async function main() {
 	try {
+		// Initialize providers first
+		await initialize();
+		logger.info('Providers initialized successfully');
+
 		// Connect to MongoDB
-		await connectDB();
-		console.log('Connected to MongoDB');
+		if (!config.MONGODB_URI) {
+			throw new Error('MongoDB URI is not defined');
+		}
+		await mongoose.connect(config.MONGODB_URI);
+		logger.info('Connected to MongoDB successfully');
 
 		// Fetch historical liquidity events
 		await fetchHistoricalLiquidity();
-		console.log('Fetched historical liquidity events');
+		logger.info('Finished fetching historical liquidity events');
 
 		// Start server
-		await startServer();
-		console.log('Server started successfully');
-
-		// Send Telegram notification
-		await sendTelegramMessage('Bot started successfully');
+		const port = config.APP.PORT;
+		app.listen(port, () => {
+			logger.info(`Server is running on port ${port}`);
+		});
 	} catch (error) {
-		console.error('Error starting bot:', error);
-		try {
-			await sendTelegramMessage(`Error starting bot: ${error}`);
-		} catch (telegramError) {
-			console.error('Error sending Telegram message:', telegramError);
-		}
+		logger.error('Error in main process:', error);
+		await tgMessage(`Error starting application: ${error}`);
 		process.exit(1);
 	}
 }

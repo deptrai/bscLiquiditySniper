@@ -6,12 +6,12 @@ export class HttpProviderPool {
 
     constructor(providers: ethers.JsonRpcProvider[]) {
         this.providers = providers;
+        // Start with the first provider
+        this.currentIndex = 0;
     }
 
     getProvider(): ethers.JsonRpcProvider {
-        const provider = this.providers[this.currentIndex];
-        this.currentIndex = (this.currentIndex + 1) % this.providers.length;
-        return provider;
+        return this.providers[this.currentIndex];
     }
 
     switchProvider() {
@@ -33,12 +33,12 @@ export class WssProviderPool {
 
     constructor(providers: ethers.WebSocketProvider[]) {
         this.providers = providers;
+        // Start with the first provider
+        this.currentIndex = 0;
     }
 
     getProvider(): ethers.WebSocketProvider {
-        const provider = this.providers[this.currentIndex];
-        this.currentIndex = (this.currentIndex + 1) % this.providers.length;
-        return provider;
+        return this.providers[this.currentIndex];
     }
 
     switchProvider() {

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import { config } from '../config';
+import { config, getProviders } from '../config';
+import { logger } from '../utils/logger';
 import { TokenInfo } from '../types/token';
 
 const ERC20_ABI = [
@@ -23,17 +24,19 @@ export class TokenService {
     }
 
     public async getTokenInfo(address: string, amount: string = '0'): Promise<TokenInfo> {
-        // Check cache first
-        if (this.tokenCache.has(address)) {
-            const cachedInfo = this.tokenCache.get(address)!;
-            return {
-                ...cachedInfo,
-                amount
-            };
-        }
-
         try {
-            const contract = new ethers.Contract(address, ERC20_ABI, config.PROVIDER);
+            // Check cache first
+            if (this.tokenCache.has(address)) {
+                const cachedInfo = this.tokenCache.get(address)!;
+                return {
+                    ...cachedInfo,
+                    amount
+                };
+            }
+
+            const { httpProviderPool } = getProviders();
+            const provider = httpProviderPool.getProvider();
+            const contract = new ethers.Contract(address, ERC20_ABI, provider);
             const [symbol, decimals, name] = await Promise.all([
                 contract.symbol(),
                 contract.decimals(),
@@ -43,9 +46,9 @@ export class TokenService {
             const tokenInfo: TokenInfo = {
                 address,
                 symbol,
-                amount,
-                decimals,
-                name
+                decimals: Number(decimals), // Convert bigint to number
+                name,
+                amount
             };
 
             // Cache the token info
@@ -53,18 +56,20 @@ export class TokenService {
 
             return tokenInfo;
         } catch (error) {
-            console.error(`Error fetching token info for ${address}:`, error);
+            logger.error(`Error fetching token info for ${address}:`, error);
             throw error;
         }
     }
 
     public async getTokenAmount(address: string, owner: string): Promise<string> {
         try {
-            const contract = new ethers.Contract(address, ERC20_ABI, config.PROVIDER);
+            const { httpProviderPool } = getProviders();
+            const provider = httpProviderPool.getProvider();
+            const contract = new ethers.Contract(address, ERC20_ABI, provider);
             const balance = await contract.balanceOf(owner);
             return balance.toString();
         } catch (error) {
-            console.error(`Error fetching token amount for ${address}:`, error);
+            logger.error(`Error fetching token amount for ${address}:`, error);
             throw error;
         }
     }
