@@ -1826,3 +1826,47 @@
 {"level":"info","message":"Processing blocks 47884705 to 47884714 with provider 1/6","timestamp":"2025-03-29T10:52:19.095Z"}
 {"level":"info","message":"V2 Events from block 47884705 to 47884714:","timestamp":"2025-03-29T10:52:24.431Z"}
 {"level":"info","message":"V3 Events from block 47884705 to 47884714:","timestamp":"2025-03-29T10:52:25.747Z"}
+{"code":"TIMEOUT","level":"error","message":"Error processing blocks 47884705 to 47884714: request timeout (code=TIMEOUT, version=6.13.5)","shortMessage":"request timeout","stack":"Error: request timeout (code=TIMEOUT, version=6.13.5)\n    at makeError (/Users/mac/Documents/GitHub/bscLiquiditySniper/node_modules/ethers/src.ts/utils/errors.ts:694:21)\n    at ClientRequest.<anonymous> (/Users/mac/Documents/GitHub/bscLiquiditySniper/node_modules/ethers/src.ts/utils/geturl.ts:66:33)\n    at ClientRequest.emit (node:events:517:28)\n    at TLSSocket.emitRequestTimeout (node:_http_client:847:9)\n    at Object.onceWrapper (node:events:631:28)\n    at TLSSocket.emit (node:events:529:35)\n    at TLSSocket.Socket._onTimeout (node:net:598:8)\n    at listOnTimeout (node:internal/timers:569:17)\n    at processTimers (node:internal/timers:512:7)","timestamp":"2025-03-29T10:58:00.451Z"}
+{"level":"info","message":"Processing blocks 47884705 to 47884714 with provider 2/6","timestamp":"2025-03-29T10:58:10.455Z"}
+{"level":"info","message":"V2 Events from block 47884705 to 47884714:","timestamp":"2025-03-29T10:58:16.474Z"}
+{"level":"info","message":"V3 Events from block 47884705 to 47884714:","timestamp":"2025-03-29T10:58:18.700Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884705 to 47884714","timestamp":"2025-03-29T10:58:33.101Z"}
+{"level":"info","message":"Successfully processed blocks 47884705 to 47884714","timestamp":"2025-03-29T10:58:33.126Z"}
+{"level":"info","message":"Processing blocks 47884715 to 47884724 with provider 2/6","timestamp":"2025-03-29T10:58:35.127Z"}
+{"level":"info","message":"V2 Events from block 47884715 to 47884724:","timestamp":"2025-03-29T10:58:40.993Z"}
+{"level":"info","message":"V3 Events from block 47884715 to 47884724:","timestamp":"2025-03-29T10:58:42.835Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884715 to 47884724","timestamp":"2025-03-29T10:58:56.478Z"}
+{"level":"info","message":"Successfully processed blocks 47884715 to 47884724","timestamp":"2025-03-29T10:58:56.497Z"}
+{"level":"info","message":"Processing blocks 47884725 to 47884734 with provider 2/6","timestamp":"2025-03-29T10:58:58.498Z"}
+{"level":"info","message":"V2 Events from block 47884725 to 47884734:","timestamp":"2025-03-29T10:59:04.512Z"}
+{"level":"info","message":"V3 Events from block 47884725 to 47884734:","timestamp":"2025-03-29T10:59:06.366Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884725 to 47884734","timestamp":"2025-03-29T10:59:19.589Z"}
+{"level":"info","message":"Successfully processed blocks 47884725 to 47884734","timestamp":"2025-03-29T10:59:19.625Z"}
+{"level":"info","message":"Processing blocks 47884735 to 47884744 with provider 2/6","timestamp":"2025-03-29T10:59:21.626Z"}
+{"level":"info","message":"V2 Events from block 47884735 to 47884744:","timestamp":"2025-03-29T10:59:27.487Z"}
+{"level":"info","message":"V3 Events from block 47884735 to 47884744:","timestamp":"2025-03-29T10:59:29.341Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884735 to 47884744","timestamp":"2025-03-29T10:59:42.785Z"}
+{"level":"info","message":"Successfully processed blocks 47884735 to 47884744","timestamp":"2025-03-29T10:59:42.799Z"}
+{"level":"info","message":"Processing blocks 47884745 to 47884754 with provider 2/6","timestamp":"2025-03-29T10:59:44.800Z"}
+{"level":"info","message":"V2 Events from block 47884745 to 47884754:","timestamp":"2025-03-29T10:59:50.640Z"}
+{"level":"info","message":"V3 Events from block 47884745 to 47884754:","timestamp":"2025-03-29T10:59:52.477Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884745 to 47884754","timestamp":"2025-03-29T11:00:07.474Z"}
+{"level":"info","message":"Successfully processed blocks 47884745 to 47884754","timestamp":"2025-03-29T11:00:07.493Z"}
+{"level":"info","message":"Processing blocks 47884755 to 47884764 with provider 2/6","timestamp":"2025-03-29T11:00:09.494Z"}
+{"level":"info","message":"V2 Events from block 47884755 to 47884764:","timestamp":"2025-03-29T11:00:15.360Z"}
+{"level":"info","message":"V3 Events from block 47884755 to 47884764:","timestamp":"2025-03-29T11:00:17.234Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884755 to 47884764","timestamp":"2025-03-29T11:00:31.279Z"}
+{"level":"info","message":"Successfully processed blocks 47884755 to 47884764","timestamp":"2025-03-29T11:00:31.297Z"}
+{"level":"info","message":"Processing blocks 47884765 to 47884774 with provider 2/6","timestamp":"2025-03-29T11:00:33.298Z"}
+{"level":"info","message":"V2 Events from block 47884765 to 47884774:","timestamp":"2025-03-29T11:00:39.165Z"}
+{"level":"info","message":"V3 Events from block 47884765 to 47884774:","timestamp":"2025-03-29T11:00:41.026Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884765 to 47884774","timestamp":"2025-03-29T11:00:54.734Z"}
+{"level":"info","message":"Successfully processed blocks 47884765 to 47884774","timestamp":"2025-03-29T11:00:54.754Z"}
+{"level":"info","message":"Processing blocks 47884775 to 47884784 with provider 2/6","timestamp":"2025-03-29T11:00:56.756Z"}
+{"level":"info","message":"V2 Events from block 47884775 to 47884784:","timestamp":"2025-03-29T11:01:02.610Z"}
+{"level":"info","message":"V3 Events from block 47884775 to 47884784:","timestamp":"2025-03-29T11:01:04.447Z"}
+{"level":"info","message":"Found 0 Smart Router transactions from block 47884775 to 47884784","timestamp":"2025-03-29T11:01:18.612Z"}
+{"level":"info","message":"Successfully processed blocks 47884775 to 47884784","timestamp":"2025-03-29T11:01:18.655Z"}
+{"level":"info","message":"Processing blocks 47884785 to 47884794 with provider 2/6","timestamp":"2025-03-29T11:01:20.656Z"}
+{"0":{"_type":"log","address":"0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73","blockHash":"0x6327df781ca806d5fc49ed55ad5c1592d1df519d753637ec758dd4d7f84b63f2","blockNumber":47884792,"data":"0x0000000000000000000000003a9de98117088b077229a0efce4b3aac85559ed900000000000000000000000000000000000000000000000000000000001b8549","index":242,"removed":false,"topics":["0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9","0x00000000000000000000000012e60c2a0705e26b54035acc1c2075ed26b46af6","0x000000000000000000000000bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"],"transactionHash":"0x5c8c3728e8043623542ce285be717495d0c38ea7646006af7724b63b4696f481","transactionIndex":92},"level":"info","message":"V2 Events from block 47884785 to 47884794:","timestamp":"2025-03-29T11:01:26.489Z"}
+{"level":"info","message":"V3 Events from block 47884785 to 47884794:","timestamp":"2025-03-29T11:01:28.338Z"}
