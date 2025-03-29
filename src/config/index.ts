@@ -4,6 +4,58 @@ import { HttpProviderPool, WssProviderPool } from './providerPool';
 
 dotenv.config();
 
+interface DexConfig {
+	ROUTER?: string;
+	FACTORY?: string;
+	V2_ROUTER?: string;
+	V3_ROUTER?: string;
+	V2_FACTORY?: string;
+	V3_FACTORY?: string;
+	SMART_ROUTER?: string;
+}
+
+interface Config {
+	DEX_ADDRESSES: {
+		[key: string]: DexConfig;
+	};
+	WBNB: string;
+	SMART_ROUTER_METHODS: {
+		[key: string]: string;
+	};
+	V2_FILTER: {
+		address: string;
+		topics: string[];
+		fromBlock: number | string;
+		toBlock: number | string;
+	};
+	V3_FILTER: {
+		address: string;
+		topics: string[];
+		fromBlock: number | string;
+		toBlock: number | string;
+	};
+	SMART_ROUTER_FILTER: {
+		address: string;
+		topics: string[];
+		fromBlock: number | string;
+		toBlock: number | string;
+	};
+	SECRET_KEY: string;
+	MONGODB_URI?: string;
+	TELEGRAM: {
+		BOT_TOKEN?: string;
+		CHAT_ID?: string;
+	};
+	APP: {
+		PORT: number | string;
+		NODE_ENV: string;
+	};
+	RPC: {
+		QUICKNODE: string;
+		INFURA: string;
+	};
+}
+
 // Validate environment variables
 const requiredEnvVars = [
 	'RPC_URL',
@@ -178,7 +230,7 @@ export function getProviders() {
 }
 
 // Export configuration
-export const config = {
+export const config: Config = {
 	DEX_ADDRESSES,
 	WBNB,
 	SMART_ROUTER_METHODS,
@@ -194,5 +246,9 @@ export const config = {
 	APP: {
 		PORT: process.env.PORT || 3000,
 		NODE_ENV: process.env.NODE_ENV || 'development'
+	},
+	RPC: {
+		QUICKNODE: process.env.QUICKNODE_URL || 'https://bsc-dataseed1.binance.org',
+		INFURA: process.env.INFURA_URL || 'https://bsc-dataseed2.binance.org'
 	}
 };
