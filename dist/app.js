@@ -60,3 +60,4 @@ app.use('*', (req, res) => {
         message: 'API Not Found',
     });
 });
+//# sourceMappingURL=app.js.map

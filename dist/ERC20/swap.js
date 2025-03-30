@@ -4,24 +4,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.swapTokenForETH = exports.swapETHforToken = exports.swapToken = exports.approveAllowance = exports.getAllowance = exports.getWalletNonce = exports.getAmountsOut = exports.getTokenBalance = void 0;
+exports.initializeProvider = initializeProvider;
 const pancakeswap_json_1 = __importDefault(require("../ABI/pancakeswap.json"));
 const ethers_1 = require("ethers");
 const config_1 = require("../config");
-if (!config_1.config.WALLET.secretKey) {
-    throw new Error('Secret key not found in config');
+// Initialize providers first
+let provider;
+let account = null;
+let contract = null;
+// Function to initialize provider and contract
+function initializeProvider() {
+    if (config_1.config.SECRET_KEY) {
+        const { httpProviderPool } = (0, config_1.getProviders)();
+        provider = httpProviderPool.getProvider();
+        const signer = new ethers_1.ethers.Wallet(config_1.config.SECRET_KEY);
+        account = signer.connect(provider);
+        if (config_1.config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER) {
+            contract = new ethers_1.ethers.Contract(config_1.config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER, pancakeswap_json_1.default, account);
+        }
+    }
 }
-if (!config_1.config.PANCAKESWAP.V2_ROUTER) {
-    throw new Error('V2 Router address not found in config');
-}
-// Initialize signer and account
-const signer = new ethers_1.ethers.Wallet(config_1.config.WALLET.secretKey);
-const account = signer.connect(config_1.config.PROVIDER);
-// Initialize contract with validated V2_ROUTER
-const contract = new ethers_1.ethers.Contract(config_1.config.PANCAKESWAP.V2_ROUTER, pancakeswap_json_1.default, account);
 // getTokenBalance
 const getTokenBalance = async (tokenAddress, wallet) => {
     try {
-        const contract = new ethers_1.ethers.Contract(tokenAddress, pancakeswap_json_1.default, config_1.config.PROVIDER);
+        const contract = new ethers_1.ethers.Contract(tokenAddress, pancakeswap_json_1.default, provider);
         const balance = await contract.balanceOf(wallet);
         return { success: true, data: balance };
     }
@@ -36,7 +42,7 @@ const getAmountsOut = async (amountIn, path) => {
     const amountsOutABI = [
         'function getAmountsOut(uint amountIn, address[] memory path) public view  returns (uint[] memory amounts)',
     ];
-    const contract = new ethers_1.ethers.Contract(config_1.config.PANCAKESWAP.V2_ROUTER, amountsOutABI, config_1.config.PROVIDER);
+    const contract = new ethers_1.ethers.Contract(config_1.config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER, amountsOutABI, provider);
     try {
         const amounts = await contract.getAmountsOut(amountIn, path);
         console.log('AMOUNTS:', amounts);
@@ -51,7 +57,7 @@ exports.getAmountsOut = getAmountsOut;
 // Get walletNonce
 const getWalletNonce = async (wallet) => {
     try {
-        const nonce = await config_1.config.PROVIDER.getTransactionCount(wallet);
+        const nonce = await provider.getTransactionCount(wallet);
         return { success: true, data: nonce };
     }
     catch (error) {
@@ -62,9 +68,12 @@ const getWalletNonce = async (wallet) => {
 exports.getWalletNonce = getWalletNonce;
 // Get Allowance for token
 const getAllowance = async (token) => {
+    if (!account) {
+        return '0';
+    }
     try {
         const contract = new ethers_1.ethers.Contract(token, pancakeswap_json_1.default, account);
-        const allowance = await contract.allowance(account, config_1.config.PANCAKESWAP.V2_ROUTER);
+        const allowance = await contract.allowance(account, config_1.config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER);
         const decimals = await contract.decimals();
         return ethers_1.ethers.formatUnits(allowance, decimals);
     }
@@ -79,6 +88,9 @@ const approveABI = [
 ];
 const MAX_INT = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 const approveAllowance = async (token) => {
+    if (!account) {
+        return { success: false, data: 'No account available' };
+    }
     try {
         const overloads = {
             gasPrice: 2000000000,
@@ -86,7 +98,7 @@ const approveAllowance = async (token) => {
         };
         console.log('APPROVING ALLOWANCE');
         const contract = new ethers_1.ethers.Contract(token, approveABI, account);
-        const approveTx = await contract.approve(config_1.config.PANCAKESWAP.V2_ROUTER, MAX_INT, overloads);
+        const approveTx = await contract.approve(config_1.config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER, MAX_INT, overloads);
         // await approveTx.wait();
         return { success: true, data: approveTx };
     }
@@ -98,6 +110,9 @@ const approveAllowance = async (token) => {
 exports.approveAllowance = approveAllowance;
 // SwapTokens
 const swapToken = async (amountIn, amountOutMin, path, to, deadline, overloads) => {
+    if (!contract) {
+        return { success: false, data: 'No contract available' };
+    }
     try {
         const transaction = await contract.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, to, deadline, overloads);
         // await transaction.wait();
@@ -111,6 +126,9 @@ const swapToken = async (amountIn, amountOutMin, path, to, deadline, overloads) 
 exports.swapToken = swapToken;
 // SwapETH
 const swapETHforToken = async (amountOutMin, path, to, amountIn, overloads) => {
+    if (!contract) {
+        return { success: false, data: 'No contract available' };
+    }
     try {
         const deadline = Math.floor(Date.now() / 1000) + 60 * 2; // 2 minutes
         const _overloads = {
@@ -129,6 +147,9 @@ const swapETHforToken = async (amountOutMin, path, to, amountIn, overloads) => {
 exports.swapETHforToken = swapETHforToken;
 // SwapTokenForETH
 const swapTokenForETH = async (amountIn, amountOutMin, path, to, deadline, overloads) => {
+    if (!contract) {
+        return { success: false, data: 'No contract available' };
+    }
     console.log(`SWAPPING TOKEN FOR ETH: ${amountIn}, ${amountOutMin}, ${path}, ${to}, ${deadline}, ${overloads}`);
     try {
         const transaction = await contract.swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, to, deadline, overloads);
@@ -140,3 +161,4 @@ const swapTokenForETH = async (amountIn, amountOutMin, path, to, deadline, overl
     }
 };
 exports.swapTokenForETH = swapTokenForETH;
+//# sourceMappingURL=swap.js.map

@@ -1,59 +1,42 @@
-# Tiến Độ Phát Triển
+# Tiến độ phát triển
 
-## ✅ Đã Hoàn Thành
+## Đã hoàn thành
+- [x] Thiết lập project TypeScript
+- [x] Cấu hình ESLint và Prettier
+- [x] Implement ProviderPool với các tính năng:
+  - [x] Quản lý nhiều provider
+  - [x] Xử lý rate limit
+  - [x] Retry mechanism
+  - [x] Switch provider tự động
+- [x] Test cases cho ProviderPool
+- [x] Historical data test với:
+  - [x] Xử lý theo block
+  - [x] Cache tiến độ
+  - [x] Xử lý lỗi và retry
+  - [x] Rate limiting
 
-### Provider Pool
-- [x] Khởi tạo cấu trúc project
-- [x] Implement ProviderPool class
-- [x] Unit test cho ProviderPool
-  - [x] Test khởi tạo providers
-  - [x] Test chuyển provider khi gặp lỗi
-  - [x] Test cơ chế retry
-  - [x] Test xử lý rate limit
-  - [x] Test lấy block number
+## Đang thực hiện
+- [ ] Implement các service chính:
+  - [ ] TokenService: Quản lý thông tin token
+  - [ ] PairService: Quản lý thông tin cặp token
+  - [ ] LiquidityService: Theo dõi và phân tích thanh khoản
+  - [ ] TransactionService: Xử lý và phân tích giao dịch
+- [ ] Implement các model:
+  - [ ] Token model
+  - [ ] Pair model
+  - [ ] Transaction model
+  - [ ] Liquidity model
 
-## 📝 Đang Phát Triển
+## Kế hoạch tiếp theo
+- [ ] Implement API endpoints
+- [ ] Implement Telegram bot
+- [ ] Implement monitoring system
+- [ ] Implement alerting system
+- [ ] Implement analytics dashboard
 
-### Liquidity Detection
-- [ ] Implement PairCreatedEvent listener
-- [ ] Unit test cho PairCreatedEvent listener
-  - [ ] Test lắng nghe sự kiện tạo pair mới
-  - [ ] Test xử lý thông tin pair
-  - [ ] Test lưu trữ pair data
-  - [ ] Test cơ chế filter pair
-
-### Smart Router
-- [ ] Implement SmartRouter class
-- [ ] Unit test cho SmartRouter
-  - [ ] Test tính toán route tối ưu
-  - [ ] Test estimate gas
-  - [ ] Test slippage protection
-  - [ ] Test multi-hop routing
-
-### Transaction Manager
-- [ ] Implement TransactionManager class
-- [ ] Unit test cho TransactionManager
-  - [ ] Test build transaction
-  - [ ] Test sign transaction
-  - [ ] Test send transaction
-  - [ ] Test gas optimization
-  - [ ] Test nonce management
-
-## 🔜 Sắp Tới
-
-### Monitoring & Analytics
-- [ ] Implement theo dõi giá
-- [ ] Implement phân tích volume
-- [ ] Implement báo cáo performance
-
-### UI/Dashboard
-- [ ] Thiết kế giao diện
-- [ ] Implement các component
-- [ ] Integrate với backend
-
-## 📚 Documentation
-- [x] Setup initial README
-- [ ] API documentation
-- [ ] Architecture documentation
-- [ ] Deployment guide
-- [ ] User guide 
+## Các vấn đề cần giải quyết
+1. Rate limiting từ các RPC provider
+2. Xử lý lỗi và retry mechanism
+3. Cache và tối ưu hiệu suất
+4. Monitoring và logging
+5. Testing và coverage 

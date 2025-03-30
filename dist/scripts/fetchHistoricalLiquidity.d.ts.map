@@ -1,0 +1,1 @@
+{"version":3,"file":"fetchHistoricalLiquidity.d.ts","sourceRoot":"","sources":["../../src/scripts/fetchHistoricalLiquidity.ts"],"names":[],"mappings":"AAybA,wBAAsB,wBAAwB,kBAiE7C;AAyDD,OAAO,QAAQ,WAAW,CAAC;IACvB,UAAU,YAAY;QAClB,gBAAgB,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,GAAG,CAAC;KAC1C;CACJ"}

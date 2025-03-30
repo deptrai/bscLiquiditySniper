@@ -75,3 +75,4 @@ const supportedTokens = (isTestnet = false) => {
     ];
 };
 exports.supportedTokens = supportedTokens;
+//# sourceMappingURL=supportedTokens.js.map

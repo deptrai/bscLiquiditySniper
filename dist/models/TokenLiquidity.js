@@ -60,3 +60,4 @@ tokenLiquiditySchema.index({ tokenAddress: 1, timestamp: -1 });
 tokenLiquiditySchema.index({ pairAddress: 1, timestamp: -1 });
 tokenLiquiditySchema.index({ blockNumber: -1 });
 exports.TokenLiquidity = mongoose_1.default.model('TokenLiquidity', tokenLiquiditySchema);
+//# sourceMappingURL=TokenLiquidity.js.map

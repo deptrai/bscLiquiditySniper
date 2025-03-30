@@ -149,6 +149,10 @@ export class ProviderPool {
         return this.providers[this.currentIndex];
     }
 
+    public getProvider(): ethers.Provider {
+        return this.getCurrentState().provider;
+    }
+
     async getBlockNumber(): Promise<number> {
         const maxRetries = 5;
         let lastError;

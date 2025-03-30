@@ -17,3 +17,4 @@ router.post('/swaps', async (req, res) => {
     // console.log(swap);
     res.status(200).json({ success: true, message: 'Swap route', data: swap });
 });
+//# sourceMappingURL=swap.js.map

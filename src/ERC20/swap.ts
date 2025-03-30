@@ -15,13 +15,16 @@ export function initializeProvider() {
 		const signer = new ethers.Wallet(config.SECRET_KEY);
 		account = signer.connect(provider);
 		
-		if (config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER) {
-			contract = new ethers.Contract(
-				config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER,
-				ABI,
-				account
-			);
+		const routerAddress = config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER;
+		if (!routerAddress) {
+			throw new Error('PancakeSwap V2 Router address not configured');
 		}
+		
+		contract = new ethers.Contract(
+			routerAddress,
+			ABI,
+			account
+		);
 	}
 }
 
@@ -44,11 +47,18 @@ export const getAmountsOut = async (amountIn: string, path: string[]) => {
 	const amountsOutABI = [
 		'function getAmountsOut(uint amountIn, address[] memory path) public view  returns (uint[] memory amounts)',
 	];
+	
+	const routerAddress = config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER;
+	if (!routerAddress) {
+		throw new Error('PancakeSwap V2 Router address not configured');
+	}
+	
 	const contract = new ethers.Contract(
-		config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER,
+		routerAddress,
 		amountsOutABI,
 		provider
 	);
+	
 	try {
 		const amounts = await contract.getAmountsOut(amountIn, path);
 		console.log('AMOUNTS:', amounts);
@@ -79,11 +89,17 @@ export const getAllowance = async (token: string): Promise<string> => {
 	if (!account) {
 		return '0';
 	}
+	
+	const routerAddress = config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER;
+	if (!routerAddress) {
+		throw new Error('PancakeSwap V2 Router address not configured');
+	}
+	
 	try {
 		const contract = new ethers.Contract(token, ABI, account);
 		const allowance = await contract.allowance(
 			account,
-			config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER
+			routerAddress
 		);
 		const decimals = await contract.decimals();
 		return ethers.formatUnits(allowance, decimals);
@@ -98,24 +114,22 @@ const approveABI = [
 ];
 const MAX_INT =
 	'115792089237316195423570985008687907853269984665640564039457584007913129639935';
+
 export const approveAllowance = async (token: string) => {
 	if (!account) {
-		return { success: false, data: 'No account available' };
+		return { success: false, data: 'No account configured' };
 	}
+
+	const routerAddress = config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER;
+	if (!routerAddress) {
+		throw new Error('PancakeSwap V2 Router address not configured');
+	}
+
 	try {
-		const overloads = {
-			gasPrice: 2000000000,
-			gasLimit: 300000,
-		};
-		console.log('APPROVING ALLOWANCE');
 		const contract = new ethers.Contract(token, approveABI, account);
-		const approveTx = await contract.approve(
-			config.DEX_ADDRESSES.PANCAKESWAP.V2_ROUTER,
-			MAX_INT,
-			overloads
-		);
-		// await approveTx.wait();
-		return { success: true, data: approveTx };
+		const tx = await contract.approve(routerAddress, MAX_INT);
+		await tx.wait();
+		return { success: true, data: tx };
 	} catch (error) {
 		console.log('Error approving allowance:', error);
 		return { success: false, data: error };

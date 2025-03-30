@@ -9,3 +9,4 @@ const swap_1 = require("./swap");
 const router = express_1.default.Router();
 router.use('/swap', swap_1.swapRouter);
 exports.appRouter = router;
+//# sourceMappingURL=index.js.map

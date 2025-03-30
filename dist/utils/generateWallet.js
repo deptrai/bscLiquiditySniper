@@ -18,3 +18,4 @@ if (require.main === module) {
     console.log('Private Key:', wallet.privateKey);
     console.log('\nIMPORTANT: Save these keys securely!');
 }
+//# sourceMappingURL=generateWallet.js.map

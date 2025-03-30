@@ -35,3 +35,4 @@ router.get('/token/:address', async (req, res) => {
     }
 });
 exports.default = router;
+//# sourceMappingURL=history.js.map

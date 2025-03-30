@@ -68,3 +68,4 @@ tokenMetadataSchema.pre('save', function (next) {
     next();
 });
 exports.TokenMetadata = mongoose_1.default.model('TokenMetadata', tokenMetadataSchema);
+//# sourceMappingURL=TokenMetadata.js.map

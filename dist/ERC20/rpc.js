@@ -66,3 +66,4 @@ class RPCManager {
 }
 exports.RPCManager = RPCManager;
 exports.default = RPCManager;
+//# sourceMappingURL=rpc.js.map

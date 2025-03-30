@@ -32,3 +32,4 @@ const tokenHistorySchema = new mongoose_1.default.Schema({
     tickUpper: Number
 });
 exports.TokenHistory = mongoose_1.default.model('TokenHistory', tokenHistorySchema);
+//# sourceMappingURL=TokenHistory.js.map

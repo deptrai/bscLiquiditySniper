@@ -58,3 +58,4 @@ tokenPriceSchema.index({ tokenAddress: 1, timestamp: -1 });
 tokenPriceSchema.index({ pairAddress: 1, timestamp: -1 });
 tokenPriceSchema.index({ blockNumber: -1 });
 exports.TokenPrice = mongoose_1.default.model('TokenPrice', tokenPriceSchema);
+//# sourceMappingURL=TokenPrice.js.map

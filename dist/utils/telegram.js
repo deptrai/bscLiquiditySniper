@@ -28,3 +28,4 @@ async function sendTelegramMessage(message) {
         throw error;
     }
 }
+//# sourceMappingURL=telegram.js.map
