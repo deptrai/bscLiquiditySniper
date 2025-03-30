@@ -18,12 +18,12 @@ export const tgMessage = async (message: string) => {
 	
 	while (attempts < MAX_RETRIES) {
 		try {
-			if (!config.TELEGRAM.BOT_TOKEN || !config.TELEGRAM.CHAT_ID) {
+			if (!config.TELEGRAM_BOT_TOKEN || !config.TELEGRAM_CHAT_ID) {
 				throw new Error('Telegram bot token or chat ID not found');
 			}
 
 			const formattedMsg = normalizeMessage(message);
-			const url = `${TELEGRAM_API_URL}${config.TELEGRAM.BOT_TOKEN}/sendMessage`;
+			const url = `${TELEGRAM_API_URL}${config.TELEGRAM_BOT_TOKEN}/sendMessage`;
 			
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -34,7 +34,7 @@ export const tgMessage = async (message: string) => {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					chat_id: config.TELEGRAM.CHAT_ID,
+					chat_id: config.TELEGRAM_CHAT_ID,
 					text: formattedMsg,
 					parse_mode: 'MarkdownV2'
 				}),

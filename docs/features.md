@@ -1,62 +1,63 @@
-# BSC Liquidity Sniper - Features Documentation
+# Tính năng của hệ thống
 
-## 1. Core Features
-### 1.1 Liquidity Event Monitoring
-- Monitor new pair creation events (PairCreated) on PancakeSwap V2
-- Monitor new pool creation events (PoolCreated) on PancakeSwap V3
-- Store event history in MongoDB
+## 1. Phân tích hợp đồng thông minh
+- Phân tích mã nguồn hợp đồng từ BSCScan
+- Phát hiện các hàm nguy hiểm:
+  - Mint function
+  - Blacklist function
+  - Owner privileges
+  - Self-destruct
+  - Delegate call
+  - Unchecked return
+  - Reentrancy
+  - Frontrunning
+- Phát hiện honeypot
+- Tính toán điểm rủi ro
+- Lưu kết quả phân tích vào database
 
-### 1.2 Data Processing
-- WebSocket connection for real-time event listening
-- HTTP connection for data querying
-- RPC and WebSocket load balancing system
-- Automatic provider switching on errors
+## 2. Giám sát cặp giao dịch mới
+- Theo dõi sự kiện PairCreated trên PancakeSwap V2/V3
+- Phân tích bảo mật tự động cho token mới
+- Gửi thông báo Telegram với thông tin chi tiết:
+  - Thông tin cơ bản về token
+  - Kết quả phân tích bảo mật
+  - Điểm rủi ro
+  - Trạng thái honeypot
+  - Số lượng hàm nguy hiểm
+  - Số lượng lỗ hổng
 
-## 2. Storage Features
-### 2.1 Database
-- Store token history in MongoDB
-- Store liquidity events
-- Store token pair information
+## 3. Quản lý kết nối WebSocket
+- Hỗ trợ nhiều kết nối WebSocket đồng thời
+- Tự động kết nối lại khi mất kết nối
+- Cơ chế backoff tăng dần
+- Ping định kỳ để giữ kết nối
+- Xử lý lỗi và chuyển đổi provider
 
-## 3. Notification Features
-### 3.1 Telegram Integration
-- Send notifications for new events
-- Send error notifications
-- Send bot status updates (start/stop)
+## 4. API Endpoints
+- POST `/api/analyze-contract`: Phân tích hợp đồng mới
+- GET `/api/contract-analysis/:address`: Lấy kết quả phân tích
 
-## 4. API Features
-### 4.1 Endpoints
-- Token history query endpoint
-- Liquidity events query endpoint
-- Bot status check endpoint
+## 5. Lưu trữ dữ liệu
+- Lưu thông tin token
+- Lưu lịch sử token
+- Lưu kết quả phân tích hợp đồng
+- Lưu thông tin block đã xử lý
 
-## 5. Monitoring Features
-### 5.1 Logging
-- Detailed event logging
-- Error logging
-- Connection status monitoring
-- Bot performance monitoring
+## 6. Xử lý lỗi và tối ưu
+- Xử lý rate limit
+- Retry logic cho các request
+- Batch processing
+- Cache kết quả phân tích
+- Xử lý lỗi gracefully
 
-## 6. Security Features
-### 6.1 Authentication
-- Telegram user authentication
-- API access control
-- Sensitive endpoint protection
+## 7. Cấu hình linh hoạt
+- Hỗ trợ nhiều RPC URL
+- Cấu hình thông qua biến môi trường
+- Tùy chỉnh thông số kết nối
+- Tùy chỉnh thông số phân tích
 
-## 7. Error Handling
-### 7.1 Recovery
-- Automatic connection retry
-- Automatic provider switching
-- Detailed error logging for debugging
-
-## 8. Configuration
-### 8.1 Flexibility
-- Environment variable configuration
-- Customizable RPC and WebSocket URLs
-- Configurable token watch list
-
-## 9. Optimization
-### 9.1 Performance
-- Block range splitting to avoid rate limits
-- Data caching
-- Parallel event processing 
+## 8. Logging và Monitoring
+- Log chi tiết các sự kiện
+- Theo dõi trạng thái kết nối
+- Thống kê số lượng token đã phân tích
+- Theo dõi hiệu suất hệ thống 

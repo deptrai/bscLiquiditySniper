@@ -15,22 +15,23 @@ interface ProviderState {
 
 export class ProviderPool {
     private providers: ProviderState[];
-    private currentIndex: number;
-    private readonly requestsPerSecond = 10; // More conservative than 15
-    private readonly logsRequestsPerSecond = 2; // Very conservative for eth_getLogs
-    private readonly requestWindow = 1000; // 1 second window
-    private readonly logsRequestWindow = 5000; // 5 second window for eth_getLogs
-    private readonly minBackoffDelay = 5000; // 5 seconds
-    private readonly maxBackoffDelay = 60000; // 60 seconds
+    public currentIndex: number;
+    public readonly requestsPerSecond = 5; // Reduced from 10
+    public readonly logsRequestsPerSecond = 1; // Reduced from 2
+    public readonly requestWindow = 2000; // Increased from 1000
+    public readonly logsRequestWindow = 10000; // Increased from 5000
+    public readonly minBackoffDelay = 10000; // Increased from 5000
+    public readonly maxBackoffDelay = 120000; // Increased from 60000
 
     constructor() {
-        this.providers = [
-            new ethers.JsonRpcProvider(config.RPC.QUICKNODE),
-            new ethers.JsonRpcProvider(config.RPC.INFURA),
-            new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org'),
-            new ethers.JsonRpcProvider('https://bsc-dataseed2.binance.org')
-        ].map(provider => ({
-            provider,
+        const urls = [
+            config.RPC.QUICKNODE,
+            config.RPC.INFURA,
+            ...config.HTTP_RPC_URLS
+        ].filter(url => url); // Filter out empty strings
+
+        this.providers = urls.map(url => ({
+            provider: new ethers.JsonRpcProvider(url),
             requestCount: 0,
             lastRequestTime: 0,
             rateLimitUntil: 0,
@@ -39,6 +40,8 @@ export class ProviderPool {
             lastLogsRequestTime: 0
         }));
         this.currentIndex = 0;
+        
+        logger.info(`Created provider pool with ${urls.length} providers`);
     }
 
     private calculateBackoff(consecutiveErrors: number): number {
@@ -96,7 +99,15 @@ export class ProviderPool {
         }
     }
 
-    private async switchProvider(): Promise<void> {
+    public getCurrentProviderIndex(): number {
+        return this.currentIndex;
+    }
+
+    public getProviderCount(): number {
+        return this.providers.length;
+    }
+
+    public async switchProvider(): Promise<void> {
         const now = Date.now();
         let attempts = 0;
         const maxAttempts = this.providers.length * 2;

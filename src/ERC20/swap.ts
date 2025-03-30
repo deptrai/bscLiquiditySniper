@@ -11,7 +11,7 @@ let contract: ethers.Contract | null = null;
 export function initializeProvider() {
 	if (config.SECRET_KEY) {
 		const { httpProviderPool } = getProviders();
-		provider = httpProviderPool.getProvider();
+		provider = new ethers.JsonRpcProvider(config.HTTP_RPC_URLS[0]);
 		const signer = new ethers.Wallet(config.SECRET_KEY);
 		account = signer.connect(provider);
 		
