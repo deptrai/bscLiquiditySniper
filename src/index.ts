@@ -1,10 +1,12 @@
+import mongoose from 'mongoose';
+import { config, initialize } from './config';
 import { logger } from './utils/logger';
-import { initialize } from './config';
 import { initializeProvider } from './ERC20/swap';
 import { connectDB } from './config/database';
 import { fetchHistoricalLiquidity } from './scripts/fetchHistoricalLiquidity';
 import { startServer } from './server';
 import { tgMessage } from './TG/tgBot';
+import { initializeWebSocketMonitoring, cleanupWebSocketProviders } from './scripts/monitorPairCreated';
 
 async function main() {
 	try {
@@ -24,8 +26,12 @@ async function main() {
 		// Send startup notification
 		await tgMessage('🚀 BscLiquiditySniper Bot Started!');
 
-		// Fetch historical liquidity events
-		logger.info('Starting to fetch historical liquidity events...');
+		// Initialize WebSocket monitoring for real-time event tracking
+		logger.info('Starting WebSocket monitoring for real-time pair creation events');
+		await initializeWebSocketMonitoring();
+		
+		// Also start historical liquidity fetching
+		logger.info('Starting historical liquidity fetching');
 		await fetchHistoricalLiquidity();
 
 		// Start API server
@@ -38,6 +44,8 @@ async function main() {
 			process.on(signal, async () => {
 				logger.info(`Received ${signal}, shutting down gracefully...`);
 				await tgMessage('🛑 BscLiquiditySniper Bot Stopped!');
+				await cleanupWebSocketProviders();
+				await mongoose.disconnect();
 				process.exit(0);
 			});
 		});

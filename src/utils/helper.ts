@@ -16,4 +16,32 @@ export function formatNumber(value: bigint | number, decimals: number): string {
     const remainder = value % divisor;
     const decimalStr = remainder.toString().padStart(decimals, '0');
     return `${whole}.${decimalStr}`;
+}
+
+export async function findAvailablePort(startPort: number = 3000): Promise<number> {
+    const net = require('net');
+    
+    function isPortAvailable(port: number): Promise<boolean> {
+        return new Promise((resolve) => {
+            const server = net.createServer();
+            
+            server.once('error', () => {
+                resolve(false);
+            });
+            
+            server.once('listening', () => {
+                server.close();
+                resolve(true);
+            });
+            
+            server.listen(port);
+        });
+    }
+    
+    let port = startPort;
+    while (!(await isPortAvailable(port))) {
+        port++;
+    }
+    
+    return port;
 } 
