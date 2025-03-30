@@ -14,6 +14,51 @@ export const PAIR_ABI = [
     'function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external'
 ];
 
+export const ERC20_ABI = [
+    'function name() view returns (string)',
+    'function symbol() view returns (string)',
+    'function decimals() view returns (uint8)',
+    'function totalSupply() view returns (uint256)',
+    'function balanceOf(address) view returns (uint256)',
+    'function transfer(address to, uint256 amount) returns (bool)',
+    'function allowance(address owner, address spender) view returns (uint256)',
+    'function approve(address spender, uint256 amount) returns (bool)',
+    'function transferFrom(address sender, address recipient, uint256 amount) returns (bool)',
+    'event Transfer(address indexed from, address indexed to, uint256 value)',
+    'event Approval(address indexed owner, address indexed spender, uint256 value)',
+    'function buyTax() view returns (uint256)',
+    'function sellTax() view returns (uint256)',
+    'function reflectionFee() view returns (uint256)',
+    'function maxTransactionAmount() view returns (uint256)',
+    'function maxWalletAmount() view returns (uint256)',
+    'function cooldownTime() view returns (uint256)',
+    'function isBlacklisted(address) view returns (bool)',
+    'function isWhitelisted(address) view returns (bool)',
+    'function burnAddress() view returns (address)',
+    'function burnRate() view returns (uint256)',
+    'function totalBurned() view returns (uint256)'
+];
+
+export const LOCK_ABI = [
+    'function getLockInfo(address pair) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByIndex(uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockCount() view returns (uint256)',
+    'function getLockCountByPair(address pair) view returns (uint256)',
+    'function getLockInfoByPairAndIndex(address pair, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByToken(address token) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByTokenAndIndex(address token, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByTokenAndPair(address token, address pair) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByTokenAndPairAndIndex(address token, address pair, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwner(address owner) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndIndex(address owner, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndToken(address owner, address token) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndTokenAndIndex(address owner, address token, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndPair(address owner, address pair) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndPairAndIndex(address owner, address pair, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndTokenAndPair(address owner, address token, address pair) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))',
+    'function getLockInfoByOwnerAndTokenAndPairAndIndex(address owner, address token, address pair, uint256 index) view returns (tuple(address owner, uint256 amount, uint256 percentage, uint256 startTime, uint256 endTime))'
+];
+
 // Event signatures
 export const EVENT_SIGNATURES = {
     // Existing events

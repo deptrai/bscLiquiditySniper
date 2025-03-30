@@ -1,82 +1,101 @@
 # BSC Liquidity Sniper
 
-Bot tự động phát hiện và tương tác với các liquidity pool mới trên Binance Smart Chain.
+A tool for monitoring and analyzing token pairs on PancakeSwap V2/V3.
 
-## Tính Năng
+## Features
 
-- 🔄 **Provider Pool**: Quản lý và tự động chuyển đổi giữa nhiều RPC providers
-  - Xử lý rate limit
-  - Tự động retry khi gặp lỗi
-  - Load balancing giữa các providers
+### Token Analysis
+- Monitors new token pair creation events
+- Analyzes token contracts and tokenomics
+- Tracks liquidity and price history
+- Sends real-time Telegram notifications
 
-- 🔍 **Liquidity Detection**: (Đang phát triển)
-  - Phát hiện pair mới được tạo
-  - Lọc pair theo tiêu chí
-  - Theo dõi liquidity
+### Data Collection
+- Token metadata and basic information
+- Contract analysis results
+- Tokenomics analysis
+- Liquidity analysis
+- Price and liquidity history
+- Transaction history
 
-- 📊 **Smart Router**: (Đang phát triển)
-  - Tìm route tối ưu
-  - Tính toán slippage
-  - Multi-hop routing
+### Real-time Monitoring
+- WebSocket connections to BSC nodes
+- Automatic reconnection handling
+- Multiple provider support
+- Event filtering for PancakeSwap V2/V3
 
-- 💼 **Transaction Manager**: (Đang phát triển)
-  - Quản lý giao dịch
-  - Tối ưu gas
-  - Quản lý nonce
+## Recent Updates
 
-## Cài Đặt
+### Token Analysis Improvements
+- Fixed TypeScript errors in route handlers
+- Updated token analysis service to handle price calculations
+- Improved event parsing for pair creation
+- Added proper error handling for WebSocket connections
 
+### Code Structure
+- Singleton pattern for analysis services
+- Proper TypeScript types and interfaces
+- Modular architecture for easy extension
+- Comprehensive error handling
+
+### Configuration
+- Environment-based configuration
+- Support for multiple RPC providers
+- Configurable DEX addresses and contracts
+- Telegram notification settings
+
+## Setup
+
+1. Install dependencies:
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/bscLiquiditySniper.git
-
-# Cài đặt dependencies
-yarn install
-
-# Build project
-yarn build
-
-# Chạy tests
-yarn test
+npm install
 ```
 
-## Cấu Hình
-
-Tạo file `.env` với các thông số sau:
-
-```env
-# RPC Endpoints
-QUICKNODE_RPC=your_quicknode_endpoint
-INFURA_RPC=your_infura_endpoint
-
-# Wallet
-PRIVATE_KEY=your_wallet_private_key
-
-# Settings
-MAX_RETRIES=10
-REQUEST_TIMEOUT=5000
+2. Create `.env` file with required variables:
+```
+RPC_URL=your_rpc_urls_comma_separated
+WSS_URL=your_wss_urls_comma_separated
+MONGODB_URI=your_mongodb_uri
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
 ```
 
-## Testing
-
+3. Start the service:
 ```bash
-# Chạy toàn bộ test
-yarn test
-
-# Chạy test cho một module cụ thể
-yarn test:provider    # Test Provider Pool
-yarn test:liquidity  # Test Liquidity Detection
-yarn test:router     # Test Smart Router
-yarn test:tx         # Test Transaction Manager
+npm start
 ```
 
-## Đóng Góp
+## Architecture
 
-1. Fork repository
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit thay đổi (`git commit -m 'Add some AmazingFeature'`)
-4. Push lên branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+### Services
+- `TokenAnalyzer`: Main service for token analysis
+- `ContractAnalyzer`: Analyzes token contracts
+- `TokenomicsAnalyzer`: Analyzes token economics
+- `LiquidityAnalyzer`: Analyzes liquidity pools
+
+### Models
+- `Token`: Basic token information
+- `TokenMetadata`: Extended token metadata
+- `TokenHistory`: Transaction history
+- `TokenPrice`: Price history
+- `TokenLiquidity`: Liquidity history
+- `TokenomicsAnalysis`: Tokenomics analysis results
+- `ContractAnalysis`: Contract analysis results
+- `LiquidityAnalysis`: Liquidity analysis results
+
+### WebSocket Management
+- Automatic reconnection
+- Multiple provider support
+- Connection health monitoring
+- Event filtering
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 

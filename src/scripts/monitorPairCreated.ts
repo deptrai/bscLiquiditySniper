@@ -8,8 +8,7 @@ import { formatNumber } from '../utils/helper';
 import { PAIR_ABI } from '../constants/abis';
 import { ProcessedBlock } from '../models/ProcessedBlock';
 import { getProviders } from '../config';
-import { ContractAnalyzer } from '../services/contractAnalyzer';
-import { ContractAnalysisModel } from '../models/ContractAnalysis';
+import { TokenAnalyzer } from '../services/tokenAnalyzer';
 
 // Helper function to sleep
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -279,115 +278,47 @@ async function setupPairCreatedListeners(wsProvider: WebSocketProviderWithMeta) 
 }
 
 /**
- * Get basic token information directly from the contract
- */
-async function getBasicTokenInfo(tokenAddress: string, providerUrl: string): Promise<TokenInfo> {
-  try {
-    const provider = new ethers.JsonRpcProvider(providerUrl);
-    const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
-    
-    // Get basic token info with retry logic
-    let attempts = 0;
-    const maxAttempts = 3;
-    let lastError;
-    
-    while (attempts < maxAttempts) {
-      try {
-        const [name, symbol, decimals, totalSupply] = await Promise.all([
-          contract.name(),
-          contract.symbol(),
-          contract.decimals(),
-          contract.totalSupply()
-        ]);
-        
-        return {
-          address: tokenAddress,
-          name,
-          symbol,
-          decimals: Number(decimals),
-          totalSupply: totalSupply
-        };
-      } catch (error) {
-        lastError = error;
-        attempts++;
-        
-        if (attempts >= maxAttempts) {
-          throw error;
-        }
-        
-        // Wait before retrying
-        await sleep(1000);
-      }
-    }
-    
-    throw lastError;
-  } catch (error) {
-    logger.error(`Error getting basic token info for ${tokenAddress}:`, error);
-    throw error;
-  }
-}
-
-/**
  * Process a PairCreated event
  */
 async function processPairCreatedEvent(event: ethers.Log, provider: ethers.Provider) {
   try {
-    // Decode event data
+    // Decode the event data
     const iface = new ethers.Interface([
       'event PairCreated(address indexed token0, address indexed token1, address pair, uint256)',
-      'event PoolCreated(address indexed token0, address indexed token1, uint24 indexed fee, uint24 tickSpacing, address pool)'
+      'event PoolCreated(address indexed token0, address indexed token1, uint24 fee, uint24 tickSpacing, address pool)'
     ]);
+    
+    const decodedLog = iface.parseLog({
+      topics: event.topics,
+      data: event.data
+    });
 
-    let decodedData;
-    if (event.topics[0] === ethers.id('PairCreated(address,address,address,uint256)')) {
-      decodedData = iface.parseLog({
-        topics: event.topics,
-        data: event.data
-      });
-    } else if (event.topics[0] === ethers.id('PoolCreated(address,address,uint24,uint24,address)')) {
-      decodedData = iface.parseLog({
-        topics: event.topics,
-        data: event.data
-      });
-    } else {
-      logger.error('Unknown event type:', event.topics[0]);
-      return;
-    }
-
-    if (!decodedData) {
+    if (!decodedLog) {
       logger.error('Failed to decode event data');
       return;
     }
 
-    const args = decodedData.args;
-    if (!args) {
-      logger.error('No event arguments found');
+    const pairAddress = decodedLog.args[2] as string;
+    if (!pairAddress) {
+      logger.error('No pair address found in event');
       return;
     }
 
-    // Get token addresses based on event type
-    let token0, token1, pair, pairCount;
-    if (event.topics[0] === ethers.id('PairCreated(address,address,address,uint256)')) {
-      [token0, token1, pair, pairCount] = args;
-    } else {
-      [token0, token1, , , pair] = args;
-      pairCount = BigInt(0); // V3 pools don't have pair count
-    }
-
-    if (!token0 || !token1 || !pair) {
-      logger.error('Invalid event data:', event);
-      return;
-    }
-
+    const pairContract = new ethers.Contract(pairAddress, PAIR_ABI, provider);
+    
     // Get token addresses
-    const token0Address = token0.toLowerCase();
-    const token1Address = token1.toLowerCase();
-    const pairAddress = pair.toLowerCase();
+    const [token0Address, token1Address] = await Promise.all([
+      pairContract.token0(),
+      pairContract.token1()
+    ]);
 
-    // Get token information
-    const token0Contract = new ethers.Contract(token0Address, ERC20_ABI, provider);
-    const token1Contract = new ethers.Contract(token1Address, ERC20_ABI, provider);
+    // Get token contracts
+    const [token0Contract, token1Contract] = [
+      new ethers.Contract(token0Address, ERC20_ABI, provider),
+      new ethers.Contract(token1Address, ERC20_ABI, provider)
+    ];
 
+    // Get token info
     const [token0Symbol, token0Name, token0Decimals, token0TotalSupply] = await Promise.all([
       token0Contract.symbol().catch(() => 'Unknown'),
       token0Contract.name().catch(() => 'Unknown'),
@@ -402,31 +333,16 @@ async function processPairCreatedEvent(event: ethers.Log, provider: ethers.Provi
       token1Contract.totalSupply().catch(() => '0')
     ]);
 
+    // Initialize token analyzer
+    const tokenAnalyzer = TokenAnalyzer.getInstance();
+
     // Analyze both tokens
-    const analyzer = ContractAnalyzer.getInstance();
-    const [token0Analysis, token1Analysis] = await Promise.all([
-      analyzer.analyzeContract(token0Address),
-      analyzer.analyzeContract(token1Address)
-    ]);
-
-    // Save analyses to database
     await Promise.all([
-      ContractAnalysisModel.create(token0Analysis),
-      ContractAnalysisModel.create(token1Analysis)
+      tokenAnalyzer.analyzeToken(token0Address, pairAddress),
+      tokenAnalyzer.analyzeToken(token1Address, pairAddress)
     ]);
 
-    // Format analysis results for message
-    const formatAnalysis = (analysis: any) => {
-      return `
-🔍 Security Analysis:
-• Risk Score: ${analysis.riskScore}/100
-• Honeypot: ${analysis.isHoneypot ? '⚠️ Yes' : '✅ No'}
-• Dangerous Functions: ${analysis.functions.filter((f: any) => f.isDangerous).length}
-• Vulnerabilities: ${analysis.vulnerabilities.length}
-• Events: ${analysis.events.length}`;
-    };
-
-    // Send Telegram notification with analysis
+    // Send Telegram notification
     const message = `
 🚨 New Pair Created!
 
@@ -436,7 +352,6 @@ Token 0:
 • Address: ${token0Address}
 • Decimals: ${token0Decimals}
 • Total Supply: ${ethers.formatUnits(token0TotalSupply, token0Decimals)}
-${formatAnalysis(token0Analysis)}
 
 Token 1:
 • Name: ${token1Name}
@@ -444,21 +359,13 @@ Token 1:
 • Address: ${token1Address}
 • Decimals: ${token1Decimals}
 • Total Supply: ${ethers.formatUnits(token1TotalSupply, token1Decimals)}
-${formatAnalysis(token1Analysis)}
 
 Pair:
 • Address: ${pairAddress}
-• Pair Count: ${pairCount.toString()}
 
 DEX: ${event.address === config.DEX_ADDRESSES.PANCAKESWAP.V2_FACTORY ? 'PancakeSwap V2' : 'PancakeSwap V3'}`;
 
     await tgMessage(message);
-
-    logger.info('Processed pair created event:', {
-      token0: { address: token0Address, symbol: token0Symbol },
-      token1: { address: token1Address, symbol: token1Symbol },
-      pair: pairAddress
-    });
   } catch (error) {
     logger.error('Error processing pair created event:', error);
   }
